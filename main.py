@@ -28,7 +28,7 @@ def main():
 
     # 2. Generate Story
     print("Generating Story...")
-    story_prompt = f"Write a real-life {category} story for Facebook. Bold headline, 3-5 paragraphs and hashtags."
+    story_prompt = f"add your content here."
     
     try:
         response = client.models.generate_content(model=MODEL_ID, contents=story_prompt)
