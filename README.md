@@ -14,7 +14,6 @@ An advanced, production-ready Python automation engine that researches, writes, 
     * **Scripting**: Powered by `gemini-3-flash-preview` for high-retention social hooks.
     * **Video**: Cinematic 9:16 vertical video with native audio via `veo-3.1-generate-preview`.
     * **Teasers**: High-resolution 4K story images via `imagen-4.0-generate-001`.
-* **Smart Scheduling**: Built-in logic for a hybrid posting strategy (1x Daily Weekdays / 2x Daily Weekends) to maximize ROI.
 * **Robust Upload Engine**: Handles the complex 3-step Facebook Resumable Upload protocol (Initialize -> Binary Stream -> Publish).
 * **Auto-Cleanup**: Self-managing temporary workspace to keep your host machine clean.
 
