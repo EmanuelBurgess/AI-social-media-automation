@@ -1,6 +1,6 @@
 
 
-# 🚀 AI Facebook Reel & Story Automator (2026 Edition)
+# 🚀 Social media (2026 Edition)
 
 An advanced, production-ready Python automation engine that researches, writes, renders, and publishes high-fidelity **Facebook Reels** and **Stories** using the Google Gemini 3 ecosystem and Facebook Graph API v20.0.
 
