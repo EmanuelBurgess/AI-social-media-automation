@@ -1,74 +1,101 @@
 import os
+import random
 import requests
+import pathlib
 from google import genai
 from google.genai import types
 
-# 1. Setup Environment Variables
+# --- CONFIGURATION ---
+# Ensure these environment variables are set in your terminal or .env file
+FB_PAGE_ID = os.getenv("FB_PAGE_ID")
 FB_ACCESS_TOKEN = os.getenv("FB_ACCESS_TOKEN")
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-CATEGORY = os.getenv("CATEGORY_OVERRIDE", "Dogs")
+MODEL_ID = "gemini-2.5-flash-lite"
+
+client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
+
+# Categories
+#CATEGORIES = ["artemis ii"]
+CATEGORIES = [
+    "dogs", "Dogo Argentinos", "Guardian Dogs"
+]
+#CATEGORIES = ["Jesus facts"]
 
 def main():
-    # --- STEP 1: Generate Story (Gemini) ---
-    client = genai.Client(api_key=GOOGLE_API_KEY)
-    story_prompt = f"Write a short, whimsical 2-sentence Facebook post about: {CATEGORY}. Use emojis."
+    # 1. Setup workspace
+    tmp_dir = pathlib.Path("./fb_tmp")
+    tmp_dir.mkdir(exist_ok=True)
     
-    response = client.models.generate_content(
-        model="gemini-2.5-flash-lite", 
-        contents=story_prompt
-    )
-    story_text = response.text
-    print(f"Story Generated: {story_text}")
+    category = random.choice(CATEGORIES)
+    print(f"Category: {category}")
 
-    # --- STEP 2: Generate Image (Imagen) ---
-    image_generated = False
-    image_path = "generated_image.png"
+    # 2. Generate Story
+    print("Generating Story...")
+    story_prompt = (
+        f"Write a short, whimsical 2-sentence Facebook post about: {CATEGORY}. Use emojis."
+    )
     
     try:
-        # Utilizing Imagen 3 via Vertex AI / AI Studio
+        response = client.models.generate_content(model=MODEL_ID, contents=story_prompt)
+        content = response.text
+        if not content:
+            raise ValueError("Empty response from model.")
+    except Exception as e:
+        print(f"Story failed: {e}")
+        return
+
+    # Extract headline (first line)
+    headline = content.split('\n')[0].strip('# ')
+    print("Story Generated.")
+
+    # 3. Generate Image
+    print("Generating Image...")
+    image_path = tmp_dir / "post_image.jpg"
+    image_generated = False
+    
+    try:
+        # Note: Using Imagen 3 via GenAI SDK
         img_response = client.models.generate_images(
-            model="imagen-3.0-generate-001",
-            prompt=f"A cinematic, high-quality photo of {CATEGORY} in a playful setting.",
+            model="imagen-4.0-generate-001",
+            prompt=f"Cinematic realistic photo for: {headline}. No words in generated image.",
             config=types.GenerateImagesConfig(number_of_images=1)
         )
         
-        # Save the image locally for upload
-        img_response.generated_images[0].image.save(image_path)
-        image_generated = True
-        print("✅ Image generated successfully.")
+        if img_response.generated_images:
+            # Save the first image found
+            img_response.generated_images[0].image.save(str(image_path))
+            image_generated = True
+            print("Image generated and verified.")
     except Exception as e:
-        print(f"⚠️ Image generation failed: {e}")
-        print("Falling back to text-only post.")
+        print(f"Image generation failed or not supported: {e}")
+        print("Falling back to text-only mode.")
 
-    # --- STEP 3: Upload to Facebook ---
-    print("Uploading to Facebook...")
+    # 4. Upload to Facebook
+    print("Uploading...")
     
     if image_generated:
-        # Use /me/photos to post directly to the Page's timeline
-        fb_url = "https://graph.facebook.com/v20.0/me/photos"
-        payload = {
-            'message': story_text,
-            'access_token': FB_ACCESS_TOKEN
-        }
-        files = {
-            'source': open(image_path, 'rb')
-        }
-        fb_response = requests.post(fb_url, data=payload, files=files)
+        # Post with Photo
+        url = f"https://graph.facebook.com/v20.0/{FB_PAGE_ID}/photos"
+        payload = {"caption": content, "access_token": FB_ACCESS_TOKEN}
+        with open(image_path, "rb") as img_file:
+            files = {"source": img_file}
+            fb_res = requests.post(url, data=payload, files=files)
     else:
-        # Fallback to text-only if image generation fails
-        fb_url = "https://graph.facebook.com/v20.0/me/feed"
-        payload = {
-            'message': story_text,
-            'access_token': FB_ACCESS_TOKEN
-        }
-        fb_response = requests.post(fb_url, data=payload)
+        # Post Text Only
+        url = f"https://graph.facebook.com/v20.0/{FB_PAGE_ID}/feed"
+        payload = {"message": content, "access_token": FB_ACCESS_TOKEN}
+        fb_res = requests.post(url, data=payload)
 
-    # --- STEP 4: Verify Result ---
-    result = fb_response.json()
-    if "id" in result or "post_id" in result:
-        print(f"🚀 SUCCESS! Post is live. ID: {result.get('id', result.get('post_id'))}")
+    # 5. Verify
+    result = fb_res.json()
+    if "id" in result:
+        print("SUCCESS! Post is live.")
+        print(f"Post ID: {result['id']}")
     else:
-        print(f"❌ FB Error: {result}")
+        print(f"FB Error: {result}")
+
+    # Cleanup is handled automatically if you use temporary directories, 
+    # but for this script, we'll leave the folder or delete it manually:
+    # import shutil; shutil.rmtree(tmp_dir)
 
 if __name__ == "__main__":
     main()
