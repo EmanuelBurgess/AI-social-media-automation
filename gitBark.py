@@ -18,7 +18,7 @@ CATEGORIES = ["Pit Bull", "Dogo Argentinos", "Guardian Dogs"]
 
 def main():
     # 1. Setup workspace
-    tmp_dir = pathlib.Path("./fb_tmp")
+    tmp_dir = pathlib.Path("./fb_tmp") 
     tmp_dir.mkdir(exist_ok=True)
     
     # --- LOGIC FOR GITHUB ACTIONS MANUAL INPUT ---
