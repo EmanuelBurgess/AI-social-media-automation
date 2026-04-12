@@ -1,0 +1,52 @@
+name: "🐾 GitBark: AI Content Pipeline"
+
+on:
+  # Automated daily post at 9 AM ET (13:00 UTC)
+  schedule:
+    - cron: '0 13 * * *'
+  
+  # Allows you to trigger the demo manually from the "Actions" tab
+  workflow_dispatch:
+    inputs:
+      category_override:
+        description: 'Force a specific category (e.g., Puppies, Training)'
+        required: false
+        default: 'Dogs'
+
+# Prevent multiple runs from overlapping if you trigger it twice quickly
+concurrency:
+  group: gitbark-automation
+  cancel-in-progress: true
+
+jobs:
+  generate-and-post:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip' # Speeds up subsequent runs
+
+      - name: 📦 Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install google-genai requests
+
+      - name: 🚀 Run GitBark Automation
+        env:
+          # Pulling from your GitHub Repository Secrets
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          FB_ACCESS_TOKEN: ${{ secrets.FB_ACCESS_TOKEN }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          # Pass the manual input to your script environment
+          CATEGORY_OVERRIDE: ${{ github.event.inputs.category_override }}
+        run: python gitbark.py
+
+      - name: ✅ Report Success
+        if: success()
+        run: echo "Post successfully deployed to GitBark Facebook Page!"
