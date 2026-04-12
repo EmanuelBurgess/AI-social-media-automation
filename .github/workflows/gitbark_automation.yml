@@ -5,7 +5,7 @@ on:
   schedule:
     - cron: '0 13 * * *'
   
-  # Allows you to trigger the demo manually from the "Actions" tab
+  # Manual trigger for live demos
   workflow_dispatch:
     inputs:
       category_override:
@@ -13,7 +13,7 @@ on:
         required: false
         default: 'Dogs'
 
-# Prevent multiple runs from overlapping if you trigger it twice quickly
+# Prevent multiple runs from overlapping
 concurrency:
   group: gitbark-automation
   cancel-in-progress: true
@@ -30,7 +30,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip' # Speeds up subsequent runs
+          # Caching removed to prevent "requirements.txt not found" error
 
       - name: 📦 Install Dependencies
         run: |
@@ -39,7 +39,7 @@ jobs:
 
       - name: 🚀 Run GitBark Automation
         env:
-          # Pulling from your GitHub Repository Secrets
+          # Pulling from your GitHub Secrets
           FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
           FB_ACCESS_TOKEN: ${{ secrets.FB_ACCESS_TOKEN }}
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
