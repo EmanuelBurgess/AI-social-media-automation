@@ -14,7 +14,7 @@ def main():
     story_prompt = f"Write a short, whimsical 2-sentence Facebook post about: {CATEGORY}. Use emojis."
     
     response = client.models.generate_content(
-        model="gemini-2.0-flash", 
+        model="gemini-2.5-flash-lite", 
         contents=story_prompt
     )
     story_text = response.text
