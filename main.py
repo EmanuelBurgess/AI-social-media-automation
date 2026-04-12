@@ -14,9 +14,7 @@ MODEL_ID = "gemini-2.5-flash-lite"
 client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
 
 # Categories
-CATEGORIES = [
-    "basketball", "Gen-ai"
-]
+CATEGORIES = ["Dogs"]
 
 def main():
     # 1. Setup workspace
@@ -28,7 +26,8 @@ def main():
 
     # 2. Generate Story
     print("Generating Story...")
-    story_prompt = f"add your content here."
+    story_prompt = f"Write a whimsical story about {category.lower()} for Facebook. Include a bold headline, 3-5 engaging paragraphs, and relevant hashtags."
+   
     
     try:
         response = client.models.generate_content(model=MODEL_ID, contents=story_prompt)
@@ -52,7 +51,7 @@ def main():
         # Note: Using Imagen 3 via GenAI SDK
         img_response = client.models.generate_images(
             model="imagen-4.0-generate-001",
-            prompt=f"Cinematic realistic photo for: {headline}",
+            prompt=f"Cinematic realistic photo for: {headline}. No words in generated image.",
             config=types.GenerateImagesConfig(number_of_images=1)
         )
         
@@ -88,6 +87,10 @@ def main():
         print(f"Post ID: {result['id']}")
     else:
         print(f"FB Error: {result}")
+
+    # Cleanup is handled automatically if you use temporary directories, 
+    # but for this script, we'll leave the folder or delete it manually:
+    # import shutil; shutil.rmtree(tmp_dir)
 
 if __name__ == "__main__":
     main()
