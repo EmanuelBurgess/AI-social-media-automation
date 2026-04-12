@@ -16,9 +16,8 @@ client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
 # Categories
 #CATEGORIES = ["artemis ii"]
 CATEGORIES = [
-    "dogs", "Dogo Argentinos", "Guardian Dogs"
+    "Cane Corso", "Dogo Argentinos", "Guardian Dogs"
 ]
-#CATEGORIES = ["Jesus facts"]
 
 def main():
     # 1. Setup workspace
@@ -30,9 +29,7 @@ def main():
 
     # 2. Generate Story
     print("Generating Story...")
-    story_prompt = (
-        f"Write a short, whimsical 2-sentence Facebook post about: {CATEGORY}. Use emojis."
-    )
+    story_prompt = f"Write a short, whimsical 2-sentence Facebook post about: {category}. Use emojis."
     
     try:
         response = client.models.generate_content(model=MODEL_ID, contents=story_prompt)
